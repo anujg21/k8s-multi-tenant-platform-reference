@@ -10,6 +10,16 @@ resource "kubernetes_namespace" "team" {
     name = var.team_name
     labels = merge(var.labels, {
       "platform.internal/tenant" = var.team_name
+      # Pod Security Admission: baseline is enforced (blocks known privilege
+      # escalations - hostPath, hostNetwork, privileged containers) so that
+      # namespace isolation isn't undermined by a tenant pod breaking out to
+      # the shared node. restricted is audited/warned so teams see a path to
+      # harden further without being blocked outright by default. See
+      # docs/security-review.md and
+      # https://kubernetes.io/docs/concepts/security/pod-security-admission/
+      "pod-security.kubernetes.io/enforce" = var.pod_security_enforce_level
+      "pod-security.kubernetes.io/audit"   = "restricted"
+      "pod-security.kubernetes.io/warn"    = "restricted"
     })
   }
 }
@@ -84,6 +94,79 @@ resource "kubernetes_network_policy" "allow_same_namespace" {
 
     ingress {
       from {
+        namespace_selector {
+          match_labels = {
+            "platform.internal/tenant" = var.team_name
+          }
+        }
+      }
+    }
+  }
+}
+
+# Egress was previously unrestricted: the ingress-only default-deny above
+# stopped other tenants from reaching into this namespace, but did nothing
+# to stop a compromised pod here from reaching *out* to other tenants, the
+# node's IMDS endpoint, or the open internet for data exfiltration. Default
+# deny it the same way, then explicitly allow the two things every pod
+# needs to function (DNS, same-namespace peers). See docs/security-review.md.
+resource "kubernetes_network_policy" "default_deny_egress" {
+  metadata {
+    name      = "default-deny-egress"
+    namespace = kubernetes_namespace.team.metadata[0].name
+  }
+
+  spec {
+    pod_selector {}
+    policy_types = ["Egress"]
+    # No egress rules = deny by default; allow rules below carve out what's
+    # needed for pods to function, and teams layer in additional egress
+    # (e.g. to an external API) via their own application manifests.
+  }
+}
+
+resource "kubernetes_network_policy" "allow_dns_egress" {
+  metadata {
+    name      = "allow-dns-egress"
+    namespace = kubernetes_namespace.team.metadata[0].name
+  }
+
+  spec {
+    pod_selector {}
+    policy_types = ["Egress"]
+
+    egress {
+      to {
+        namespace_selector {
+          match_labels = {
+            "kubernetes.io/metadata.name" = "kube-system"
+          }
+        }
+      }
+      ports {
+        protocol = "UDP"
+        port     = "53"
+      }
+      ports {
+        protocol = "TCP"
+        port     = "53"
+      }
+    }
+  }
+}
+
+resource "kubernetes_network_policy" "allow_same_namespace_egress" {
+  metadata {
+    name      = "allow-same-namespace-egress"
+    namespace = kubernetes_namespace.team.metadata[0].name
+  }
+
+  spec {
+    pod_selector {}
+    policy_types = ["Egress"]
+
+    egress {
+      to {
         namespace_selector {
           match_labels = {
             "platform.internal/tenant" = var.team_name

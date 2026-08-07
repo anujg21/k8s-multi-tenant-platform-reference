@@ -16,7 +16,10 @@ spec:
     spec:
       containers:
         - name: sample-service
-          image: public.ecr.aws/nginx/nginx:latest
+          # Pinned, not :latest - an unpinned tag here is exactly the kind
+          # of drift a real image-provenance policy (see ADR-0005) should
+          # catch; the reference sample shouldn't model the anti-pattern.
+          image: public.ecr.aws/nginx/nginx:1.27
           resources:
             requests:
               cpu: 100m
@@ -24,3 +27,17 @@ spec:
             limits:
               cpu: 250m
               memory: 256Mi
+---
+# Without this, Karpenter's WhenEmptyOrUnderutilized consolidation policy
+# (terraform/modules/karpenter) has no guardrail preventing both replicas
+# from being evicted close together during a consolidation event. See
+# docs/security-review.md.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sample-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: sample-service

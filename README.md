@@ -36,16 +36,26 @@ Multi-tenant clusters with **namespace-level isolation, dynamic provisioning, an
 
 See [`docs/architecture.md`](docs/architecture.md) for the full breakdown by plane, and [`docs/adr/`](docs/adr/) for the reasoning behind each major decision.
 
+Also included: an honest look at where this falls short of production.
+- [`docs/security-review.md`](docs/security-review.md) — severity-rated findings against the actual code
+- [`docs/production-readiness.md`](docs/production-readiness.md) — what's missing before a real team could adopt this
+- [`docs/prior-art.md`](docs/prior-art.md) — how it checks against official guidance and real-world case studies
+
 ## What's in this repo
 
 ```
 k8s-multi-tenant-platform-reference/
 ├── docs/
 │   ├── architecture.md          # Planes, components, and how they fit together
+│   ├── security-review.md       # Severity-rated review of the tenancy boundary
+│   ├── production-readiness.md  # Explicit gaps vs. a real production rollout
+│   ├── prior-art.md             # Cross-checked against official guidance + real orgs
 │   └── adr/                     # Architecture Decision Records
 │       ├── 0001-karpenter-over-cluster-autoscaler.md
 │       ├── 0002-namespace-multi-tenancy-over-cluster-per-team.md
-│       └── 0003-gitops-delivery-over-manual-kubectl-apply.md
+│       ├── 0003-gitops-delivery-over-manual-kubectl-apply.md
+│       ├── 0004-secrets-management.md
+│       └── 0005-policy-admission-control.md
 ├── terraform/
 │   ├── modules/
 │   │   ├── eks-cluster/         # EKS control plane + node IAM

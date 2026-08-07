@@ -38,3 +38,14 @@ variable "labels" {
   type    = map(string)
   default = {}
 }
+
+variable "pod_security_enforce_level" {
+  description = "Pod Security Standard enforced on this tenant's namespace (pod-security.kubernetes.io/enforce). 'baseline' blocks known privilege escalations while staying compatible with most workloads; 'restricted' is stricter and may require teams to adjust manifests. See docs/security-review.md."
+  type        = string
+  default     = "baseline"
+
+  validation {
+    condition     = contains(["privileged", "baseline", "restricted"], var.pod_security_enforce_level)
+    error_message = "pod_security_enforce_level must be one of: privileged, baseline, restricted."
+  }
+}

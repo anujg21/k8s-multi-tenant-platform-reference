@@ -165,6 +165,14 @@ resource "kubernetes_manifest" "default_node_pool" {
       disruption = {
         consolidationPolicy = var.consolidation_policy
         expireAfter         = "720h" # force node recycling at 30 days regardless of activity
+        # Explicit budget rather than relying on Karpenter's implicit default.
+        # This NodePool serves every tenant, so an unbounded consolidation
+        # event has no per-tenant awareness - capping simultaneous
+        # disruption limits how much of any one tenant's capacity can be
+        # cycled at once. See docs/security-review.md.
+        budgets = [
+          { nodes = var.disruption_budget_nodes }
+        ]
       }
       limits = {
         cpu = "1000"

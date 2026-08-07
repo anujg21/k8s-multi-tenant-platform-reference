@@ -26,7 +26,8 @@ This is the mechanism behind most of the compute-cost reduction in a multi-tenan
 Each team gets an isolated namespace, not an isolated cluster:
 
 - **`ResourceQuota`** caps CPU/memory/object counts per namespace so one team's spike can't starve another's
-- **`NetworkPolicy`** default-denies cross-namespace traffic unless explicitly allowed
+- **`NetworkPolicy`** default-denies cross-namespace traffic in both directions — ingress *and* egress — unless explicitly allowed
+- **Pod Security Admission** (`baseline`, audited toward `restricted`) blocks privileged pods, host-network access, and hostPath mounts — so a single pod can't break out onto the shared node and undo the isolation above
 - **RBAC** scopes each team's service accounts and CI credentials to their own namespace only
 
 This is the trade-off documented in [ADR-0002](adr/0002-namespace-multi-tenancy-over-cluster-per-team.md): namespace isolation is weaker than cluster isolation, but it's strong enough for internal application teams under a shared security baseline, and it collapses cluster-management overhead by an order of magnitude.
@@ -43,5 +44,7 @@ This is the trade-off documented in [ADR-0002](adr/0002-namespace-multi-tenancy-
 Being explicit about limits is part of the architecture, not an afterthought:
 
 - **Not a substitute for cluster isolation where it's actually required** (e.g. regulatory workloads needing hard tenancy boundaries) — for those, cluster-per-tenant is still the right call, and this pattern should be layered on top of, not instead of, that decision.
-- **Not a cost model by itself** — Karpenter reduces waste, it doesn't replace FinOps visibility into what's being spent and why.
+- **Not a cost model by itself** — Karpenter reduces waste, it doesn't replace FinOps visibility into what's being spent and why. See [`docs/production-readiness.md`](production-readiness.md) for the recommended path (OpenCost) to attribute cost back to tenants.
 - **Assumes a baseline of platform trust** — namespace isolation relies on every tenant workload not being actively adversarial. This is standard for internal enterprise multi-tenancy; it is not the right model for hosting untrusted third-party workloads.
+
+See [`docs/prior-art.md`](prior-art.md) for how this compares to official guidance, [`docs/security-review.md`](security-review.md) for gaps within this model, and [`docs/production-readiness.md`](production-readiness.md) for what's referenced here but not yet built.

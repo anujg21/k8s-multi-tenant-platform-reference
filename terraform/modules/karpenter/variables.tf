@@ -36,6 +36,12 @@ variable "consolidation_policy" {
   default = "WhenEmptyOrUnderutilized"
 }
 
+variable "disruption_budget_nodes" {
+  description = "Max nodes (count or %) Karpenter may voluntarily disrupt (drift/consolidation) at once for the tenant NodePool. Matches Karpenter's own implicit default (10%), set explicitly per production guidance rather than left implicit."
+  type        = string
+  default     = "10%"
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
