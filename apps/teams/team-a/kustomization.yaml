@@ -1,0 +1,8 @@
+# Example tenant app manifest. This directory is what the ApplicationSet
+# in gitops/argocd/applicationset-tenants.yaml discovers automatically —
+# add a directory like this one under apps/teams/<name>/ to onboard a
+# new team; no changes to the ApplicationSet itself are needed.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml

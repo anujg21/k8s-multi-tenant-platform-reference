@@ -1,0 +1,28 @@
+# Root Argo CD Application — bootstraps the platform layer itself.
+# This is the one thing installed manually (or via a bootstrap script);
+# everything else, including the tenant ApplicationSet below, is
+# reconciled by this Application pointing at Git.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/anujg21/k8s-multi-tenant-platform-reference.git
+    targetRevision: main
+    path: gitops/argocd
+    directory:
+      include: "{app-of-apps.yaml,applicationset-tenants.yaml}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

@@ -1,0 +1,39 @@
+# Generates one Argo CD Application per team directory under apps/teams/.
+#
+# Onboarding a new tenant team is: create apps/teams/<team-name>/, open a
+# PR, merge. This ApplicationSet picks it up automatically — no manual
+# Argo CD Application to write, no new CI pipeline, no platform-team
+# ticket. This is what "onboarding scales as a Git operation" (see
+# docs/adr/0003) actually looks like in config.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tenant-teams
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/anujg21/k8s-multi-tenant-platform-reference.git
+        revision: main
+        directories:
+          - path: apps/teams/*
+  template:
+    metadata:
+      name: "team-{{path.basename}}"
+      labels:
+        platform.internal/tenant: "{{path.basename}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/anujg21/k8s-multi-tenant-platform-reference.git
+        targetRevision: main
+        path: "{{path}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{path.basename}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false # namespace is provisioned by Terraform (modules/tenancy), not by the app itself
