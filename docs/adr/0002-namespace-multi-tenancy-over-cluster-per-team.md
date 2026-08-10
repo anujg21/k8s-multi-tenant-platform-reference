@@ -30,3 +30,7 @@ Shared, multi-tenant clusters with namespace-level isolation (RBAC, `ResourceQuo
 - **Cluster-per-team (status quo)** — rejected: overhead compounds as team count grows.
 - **Virtual clusters (vcluster)** — middle ground, each team gets what looks like its own control plane on shared infrastructure. Not adopted this iteration — more architectural complexity than the isolation gain justifies for this tenant population, worth revisiting if a subset of teams needs stronger isolation later.
 - **Cluster-per-team with heavy automation** — cuts manual toil, not the underlying multiplier of control-plane count and utilization waste. Doesn't fix the root cause.
+
+## Revisit when
+
+A tenant arrives whose threat model includes a hostile co-tenant, or whose regulator demands isolation a shared kernel can't provide. That workload takes the dedicated-cluster exception this decision already reserves; if such workloads become the majority, the default itself is wrong. Also revisit when one shared cluster grows into too large a blast radius, whether that shows up as API server strain, IP exhaustion, or upgrade windows that no longer fit. The vcluster middle ground noted above is worth a second look at that point.

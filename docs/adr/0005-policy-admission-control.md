@@ -30,3 +30,7 @@ PSA at `baseline` as a non-negotiable floor — implemented. Kyverno for anythin
 - **OPA Gatekeeper** — comparable capability, rejected on audience fit (Rego vs. YAML).
 - **PSA alone** — insufficient once you need anything beyond built-in pod security.
 - **PodSecurityPolicy** — removed from Kubernetes in 1.25, not viable.
+
+## Revisit when
+
+The Kyverno backlog turns out to be validation only. Kubernetes now ships ValidatingAdmissionPolicy in-tree, and CEL rules with no new controller win the same argument that picked PSA. Kyverno keeps its place only if the platform actually needs mutation or generation, such as auto-creating a default `NetworkPolicy` per namespace. Also revisit if PSA's fixed tiers start blocking legitimate tenant workloads faster than exceptions can be reviewed.

@@ -30,3 +30,7 @@ Karpenter as the primary provisioner, with a minimal static node group kept only
 
 - **Cluster Autoscaler only** — rejected: node-group proliferation under heterogeneous multi-tenant load.
 - **Fargate for everything** — rejected: several tenant workloads need DaemonSets, host networking, or GPU access Fargate doesn't support. Still an option for specific stateless workloads layered on top.
+
+## Revisit when
+
+The workload mix settles into a few stable, predictable shapes. Fixed node groups would then do the job with one less fast-moving controller to patch, and the bin-packing advantage mostly disappears. Also revisit if EKS Auto Mode's managed Karpenter covers this platform's `NodePool` needs: running the controller yourself stops earning its keep once AWS runs it for you.

@@ -30,3 +30,7 @@ External Secrets Operator, with a namespace-scoped `SecretStore` per tenant poin
 - **Sealed Secrets** — simpler, still GitOps-compatible, weaker at multi-tenant scale and rotation.
 - **Plaintext in Git** — exactly what ADR-0003 already warns against.
 - **Vault + Agent Injector** — comparable model, but adds a stateful system this AWS-native platform doesn't otherwise need.
+
+## Revisit when
+
+The platform has to run outside AWS. ESO supports other backends, but the per-tenant IAM scoping is Secrets Manager specific and would need a redesign. Also revisit if the fleet shrinks to where an operator plus IAM wiring costs more than re-sealing a handful of secrets by hand; Sealed Secrets wins at that size, as the trade-offs above already concede.

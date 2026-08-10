@@ -29,3 +29,7 @@ Argo CD. Desired state lives entirely in Git; Argo CD reconciles the cluster to 
 
 - **CI-pipeline-driven `kubectl apply`/`helm upgrade`** — rejected: credential sprawl across tenant pipelines, weaker drift detection.
 - **Flux** — comparable GitOps model. Argo CD chosen for its UI/audit experience being more approachable for teams that aren't Kubernetes specialists.
+
+## Revisit when
+
+Argo CD stops paying for itself. The signals: the root Application or the tenant `ApplicationSet` causes repeated fleet-wide incidents, or the platform shrinks to a team count where a plain deploy pipeline would be less to operate than a controller with write access to everything. Needing canary or blue-green rollouts is not a reason to leave; that argues for adding Argo Rollouts, not for abandoning GitOps.
